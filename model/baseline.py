@@ -1,107 +1,15 @@
-import pickle
-
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, accuracy_score
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.model_selection import train_test_split
 
+from model.classify_99 import classify_is_99
+from model.classify_other import classify_all
 from model.helper import load_embeddings, get_data, get_y_is_99, get_X_not_99, get_y_not_99
-from utils.transformer import WordEmbeddingVectorizer, LengthVectorier
 
 TRAIN_MODE = "train"
 PREDICT_MODE = "predict"
 
 MODEL_SAVE_DIR = "../weights/"
-
-
-def classify_is_99(X, y, embeddings, mode):
-    """
-    Classifies speech as 99 or not 99
-    :return: {List} List of classifications
-        1 if 99 and 0 if not
-    """
-    ngram_vectorizer = TfidfVectorizer(ngram_range=(1, 2), stop_words='english')
-    vectorizer = FeatureUnion([
-        ("length", LengthVectorier()),
-        ("ngram", ngram_vectorizer)
-    ])
-
-    pipe = Pipeline([
-        ("features", vectorizer),
-        ("classifier", LogisticRegression())
-    ])
-
-    if mode == TRAIN_MODE:
-        # train the data
-        pipe.fit(X, y)
-        # save the model
-        pickle.dump(pipe, open(MODEL_SAVE_DIR + "99.pickle", 'wb'))
-
-        return
-
-    elif mode == PREDICT_MODE:
-        model = pickle.load(open(MODEL_SAVE_DIR + "99.pickle", 'rb'))
-        y_pred = model.predict(X)
-        conf_matrix = confusion_matrix(y, y_pred)
-        print(conf_matrix)
-        print(accuracy_score(y, y_pred))
-
-        return {
-            "pred": y_pred
-        }
-
-
-def classify_all(X, y, embeddings, mode):
-    bag_of_words_vectorizer = TfidfVectorizer(analyzer='char_wb', ngram_range=(2, 9), stop_words='english')
-    wordVectorizer = TfidfVectorizer(ngram_range=(1, 2), stop_words='english')
-
-    vectorizer = FeatureUnion([
-        ("ngrams", wordVectorizer),
-        ("w2v vectorizer", WordEmbeddingVectorizer(embeddings)),
-    ])
-    classifier = LogisticRegression()
-
-    pipe = Pipeline([
-        ('vectorizer', vectorizer),
-        ("classifier", classifier)
-    ])
-
-    # kf = KFold(n_splits=5, shuffle=True)
-    #
-    # # Kflod validation on the data
-    #
-    # for train_index, test_index in kf.split(X):
-    #     X_train, X_test = X[train_index], X[test_index]
-    #     y_train, y_test = y[train_index], y[test_index]
-    #     pipe.fit(X_train, y_train)
-    #     y_pred = pipe.predict(X_test)
-    #     conf_matrix = confusion_matrix(y_test, y_pred)
-    #     print(accuracy_score(y_test, y_pred))
-    #     print(conf_matrix)
-
-    if mode == TRAIN_MODE:
-        # train the data
-        pipe.fit(X, y)
-
-        # save the model
-        pickle.dump(pipe, open(MODEL_SAVE_DIR + "all.pickle", 'wb'))
-        return
-
-    elif mode == PREDICT_MODE:
-        model = pickle.load(open(MODEL_SAVE_DIR + "all.pickle", 'rb'))
-        X_transformed = vectorizer.fit_transform(X)
-        y_pred = model.predict(X_transformed)
-
-        # Confusion matrix
-        conf_matrix = confusion_matrix(y, y_pred)
-        print(conf_matrix)
-        print(accuracy_score(y, y_pred))
-
-        return {
-            "pred": y_pred
-        }
 
 
 def _classify(X, y, embeddings, mode):
