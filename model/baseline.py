@@ -34,7 +34,7 @@ def _classify(X, y, embeddings, mode):
         # indices with predicted label as other than 99
         indices = np.argwhere(pred_labels==0)
 
-        # indices with predicted label as 99
+        # indices with predicted label as 99__internals__ = {dict} {'T': array([99, 99, 99, ..., 99, 99, 99]), 'base': None, 'ctypes': <numpy.core._internal._ctypes object at 0x7fb06ae2c0f0>, 'data': <memory at 0x7fb06ae8dc48>, 'dtype': dtype('int64'), 'flags':   C_CONTIGUOUS : True\n  F_CONTIGUOUS : True\n  OWNDATA : True\n  WRITEABLE : True\n  ALIGNED : True\n  WRITEBACKIFCOPY : False\n  UPDATEIFCOPY : False, 'flat': <numpy.flatiter object at 0x55c9a609e2c0>, 'imag': array([0, 0, 0, ..., 0, 0, 0]), 'itemsize': 8, 'nbytes': 41344, 'ndim': 1, 'real': array([99, 99, 99, ..., 99, 99, 99]), 'shape': (5168,), 'size': 5168, 'strides': (8,)}… View
         indices_99 = np.argwhere(pred_labels==1)
 
         # The labels not 99 are classified by the second classifier
@@ -58,7 +58,7 @@ def classify():
     embeddings = load_embeddings()
     data = get_data()
     # Split Data into train and test set
-    X_train, X_test, y_train, y_test = train_test_split(data["X"], data["y"], test_size=0.20, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(data["X"], data["y"], test_size=0.20, random_state=1234)
 
     # Train
     _classify(X_train, y_train, embeddings, mode=TRAIN_MODE)
