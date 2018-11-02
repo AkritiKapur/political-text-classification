@@ -4,6 +4,7 @@ took help from: https://www.kaggle.com/snlpnkj/bidirectional-lstm-keras,
 
 others - 16426
 """
+import pandas as pd
 
 import numpy as np
 from keras import Input, Model
@@ -26,6 +27,9 @@ maxlen = 100  # max number of words in a comment to use
 
 EMBEDDING_FILE = "../word2vec/glove.6B.100d.txt"
 # EMBEDDING_FILE = "../word2vec/wiki-news-300d-1M.vec"
+
+MISCLASSIFIED_FILE = "../visualizations/misclassified.csv"
+
 
 LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
           '12', '13', '14', '15', '16', '17', '18', '19', '20',
@@ -70,6 +74,29 @@ def get_embeddings():
     return embeddings
 
 
+def write_misclassified(X_test, y_pred, y_test):
+    """
+        Writes misclassfied examples to a file
+    :param y_pred: Predicted labels
+    :param y_test: True labels
+    """
+
+    misclassified = {
+        "sentence": [],
+        "true_label": [],
+        "predicted_label": []
+    }
+
+    for i, true_class in enumerate(y_test):
+        if true_class != y_pred[i]:
+            misclassified["sentence"].append(X_test[i])
+            misclassified["true_label"].append(LABELS[true_class])
+            misclassified["predicted_label"].append(LABELS[y_pred[i]])
+
+    df = pd.DataFrame(data=misclassified)
+    df.to_csv(MISCLASSIFIED_FILE, index=None, header=True)
+
+
 if __name__ == '__main__':
     data = get_data()
 
@@ -81,6 +108,7 @@ if __name__ == '__main__':
     y = get_one_hot(y)
 
     X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, random_state=1435)
+    X_test_untokenized = X_test
 
     X_train, X_test, tokenizer = pre_process(X_train, X_test)
 
@@ -118,6 +146,9 @@ if __name__ == '__main__':
     y_pred = model.predict([X_test], batch_size=100, verbose=1)
     y_pred_class = np.argmax(y_pred, axis=1)
     y_test_class = np.argmax(Y_test, axis=1)
+
+    write_misclassified(X_test_untokenized, y_pred_class, y_test_class)
+
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
     print('Confusion Matrix')
     cm = confusion_matrix(y_pred_class, y_test_class)
