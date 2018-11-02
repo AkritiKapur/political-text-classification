@@ -7,28 +7,30 @@ others - 16426
 """
 
 import numpy as np
-import pandas as pd
 from keras import Input, Model
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential, load_model
 from keras.layers import Dense, Embedding, LSTM, Bidirectional, GlobalMaxPool1D, Dropout
+from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.text import Tokenizer
 from keras.utils import np_utils
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from keras.utils.np_utils import to_categorical
-import re
-
 from sklearn.preprocessing import LabelEncoder
 
 from model.helper import get_data
 
 # Set parameters
-embed_size = 100  # how big is each word vector
+from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue
+
+embed_size = 300  # how big is each word vector
 max_features = 25000  # how many unique words to use (i.e num rows in embedding vector)
 maxlen = 100  # max number of words in a comment to use
 
-EMBEDDING_FILE = "../word2vec/glove.6B.100d.txt"
+# EMBEDDING_FILE = "../word2vec/glove.6B.300d.txt"
+EMBEDDING_FILE = "../word2vec/wiki-news-300d-1M.vec"
+
+LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+          '12', '13', '14', '15', '16', '17', '18', '19', '20',
+          '21', '99']
 
 
 def get_coefs(word, *arr):
@@ -77,13 +79,13 @@ if __name__ == '__main__':
     # One-hot-encodings
     y = get_one_hot(y)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, random_state=1435)
 
     X_train, X_test, tokenizer = pre_process(X_train, X_test)
 
     embeddings = get_embeddings()
 
-    all_embs = np.stack(embeddings.values())
+    all_embs = np.stack(list(embeddings.values())[1:])
     emb_mean, emb_std = all_embs.mean(), all_embs.std()
 
     word_index = tokenizer.word_index
@@ -99,7 +101,7 @@ if __name__ == '__main__':
             embedding_matrix[i] = embedding_vector
 
     inp = Input(shape=(maxlen,))
-    x = Embedding(nb_words+1, embed_size, weights=[embedding_matrix])(inp)
+    x = Embedding(nb_words+1, embed_size, weights=[embedding_matrix], trainable=True)(inp)
     x = Bidirectional(LSTM(100, return_sequences=True, dropout=0.25, recurrent_dropout=0.1))(x)
     x = GlobalMaxPool1D()(x)
     x = Dense(100, activation="relu")(x)
@@ -117,5 +119,8 @@ if __name__ == '__main__':
     y_test_class = np.argmax(Y_test, axis=1)
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
     print('Confusion Matrix')
-    print(confusion_matrix(y_pred_class, y_test_class))
-
+    cm = confusion_matrix(y_pred_class, y_test_class)
+    print(cm)
+    plot_confusion_matrix(cm, LABELS)
+    plt = plot_confusion_matrix_blue(cm, LABELS)
+    plt.show()
