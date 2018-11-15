@@ -22,6 +22,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from exceptions import TestInputException
+from model import helper
 from model.helper import get_data, get_X_not_99, get_y_not_99
 
 # Set parameters
@@ -42,13 +43,14 @@ K = 2
 
 EPOCHS = 9
 
-EMBEDDING_FILE =  WORD2VEC_FOLER / "glove.6B.100d.txt"
+EMBEDDING_FILE = WORD2VEC_FOLER / "glove.6B.100d.txt"
 # EMBEDDING_FILE = "../word2vec/wiki-news-300d-1M.vec"
 
-MISCLASSIFIED_FILE = VISUALIZATION_FOLDER / "misclassified-with-99-{}.csv".format(K)
+MISCLASSIFIED_FILE = VISUALIZATION_FOLDER / "misclassified-with-99-{}-{}.csv".format(K, "bush-clinton")
 
 # Flag to see if test data should be imported or split
 IMPORT_TEST_DATA = True
+TRAINING_DATA_FILE = DATA_FOLDER / "training_repository.csv"
 TEST_DATA_FILES = [DATA_FOLDER / "benchmark_bushhw.csv", DATA_FOLDER / "benchmark_clinton.csv"]
 
 
@@ -59,7 +61,7 @@ def get_test_data():
     except TestInputException as te:
         sys.exit()
     else:
-        pass
+        return helper.get_test_data(TEST_DATA_FILES)
 
 
 def top_k_accuracy(y_true, y_pred):
@@ -128,7 +130,7 @@ def write_misclassified(X_test, y_pred, y_test):
 
 
 if __name__ == '__main__':
-    data = get_data()
+    data = get_data(TRAINING_DATA_FILE)
 
     X = data["X"]
     y = data["y"]
@@ -140,7 +142,15 @@ if __name__ == '__main__':
     # One-hot-encodings
     y = get_one_hot(y)
 
-    X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, random_state=1435)
+    if not IMPORT_TEST_DATA:
+        X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, random_state=1435)
+    else:
+        # Test data set should be imported
+        X_train, Y_train = X, y
+        test_data = get_test_data()
+
+        X_test, Y_test = test_data["X"], test_data["y"]
+
     X_test_untokenized = X_test
 
     X_train, X_test, tokenizer = pre_process(X_train, X_test)

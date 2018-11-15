@@ -2,8 +2,6 @@ import gensim
 import pandas as pd
 import numpy as np
 
-DATA_FILE = "../data/training_repository.csv"
-
 ################### WORD EMBEDDINGS ######################
 
 
@@ -32,12 +30,12 @@ def is_99(row):
         return 0
 
 
-def get_data():
+def get_data(f):
     """
         Load data from CSV
     :return: Training data X and labels y
     """
-    df = pd.read_csv(DATA_FILE, encoding="ISO-8859-1")
+    df = pd.read_csv(f, encoding="ISO-8859-1")
     X = df['Sentences'].values
     y = df['pap_fin'].values
 
@@ -45,6 +43,25 @@ def get_data():
         "X": np.array(X),
         "y": np.array(y)
     }
+
+
+def get_test_data(files):
+    """
+        Load data from CSVs
+    :param f: {list} files for which data needs to be extracted into a dataframe
+    :return: data X and labels y
+    """
+    fin_data = {
+        "X": np.array([]),
+        "y": np.array([])
+    }
+
+    for f in files:
+        data = get_data(f)
+        fin_data["X"] = np.concatenate((fin_data["X"], data["X"]), axis=None)
+        fin_data["y"] = np.concatenate((fin_data["y"], data["y"]), axis=None)
+
+    return fin_data
 
 
 def get_y_is_99(y):
