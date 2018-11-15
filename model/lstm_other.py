@@ -5,6 +5,7 @@ took help from: https://www.kaggle.com/snlpnkj/bidirectional-lstm-keras,
 others - 16426
 """
 import functools
+import sys
 
 import keras
 import pandas as pd
@@ -20,9 +21,11 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
+from exceptions import TestInputException
 from model.helper import get_data, get_X_not_99, get_y_not_99
 
 # Set parameters
+from settings import VISUALIZATION_FOLDER, WORD2VEC_FOLER, DATA_FOLDER
 from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue
 from utils.process_data import get_top_k_indices
 
@@ -39,10 +42,24 @@ K = 2
 
 EPOCHS = 9
 
-EMBEDDING_FILE = "../word2vec/glove.6B.100d.txt"
+EMBEDDING_FILE =  WORD2VEC_FOLER / "glove.6B.100d.txt"
 # EMBEDDING_FILE = "../word2vec/wiki-news-300d-1M.vec"
 
-MISCLASSIFIED_FILE = "../visualizations/misclassified-{}.csv".format(K)
+MISCLASSIFIED_FILE = VISUALIZATION_FOLDER / "misclassified-with-99-{}.csv".format(K)
+
+# Flag to see if test data should be imported or split
+IMPORT_TEST_DATA = True
+TEST_DATA_FILES = [DATA_FOLDER / "benchmark_bushhw.csv", DATA_FOLDER / "benchmark_clinton.csv"]
+
+
+def get_test_data():
+    try:
+        if not TEST_DATA_FILES:
+            raise TestInputException("No test data input files specified")
+    except TestInputException as te:
+        sys.exit()
+    else:
+        pass
 
 
 def top_k_accuracy(y_true, y_pred):
