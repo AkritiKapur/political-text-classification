@@ -4,11 +4,15 @@ took help from: https://www.kaggle.com/snlpnkj/bidirectional-lstm-keras,
 
 others - 16426
 """
+import functools
+
+import keras
 import pandas as pd
 
 import numpy as np
 from keras import Input, Model
 from keras.layers import Dense, Embedding, LSTM, Bidirectional, GlobalMaxPool1D, Dropout
+from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from keras.utils import np_utils
@@ -20,20 +24,29 @@ from model.helper import get_data, get_X_not_99, get_y_not_99
 
 # Set parameters
 from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue
+from utils.process_data import get_top_k_indices
 
 embed_size = 100  # how big is each word vector
 max_features = 25000  # how many unique words to use (i.e num rows in embedding vector)
 maxlen = 100  # max number of words in a comment to use
 
+LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+          '12', '13', '14', '15', '16', '17', '18', '19', '20',
+          '21', '99']
+
+# Top k hyperparameter setting
+K = 2
+
+EPOCHS = 9
+
 EMBEDDING_FILE = "../word2vec/glove.6B.100d.txt"
 # EMBEDDING_FILE = "../word2vec/wiki-news-300d-1M.vec"
 
-MISCLASSIFIED_FILE = "../visualizations/misclassified.csv"
+MISCLASSIFIED_FILE = "../visualizations/misclassified-{}.csv".format(K)
 
 
-LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-          '12', '13', '14', '15', '16', '17', '18', '19', '20',
-          '21']
+def top_k_accuracy(y_true, y_pred):
+    return top_k_categorical_accuracy(y_true, y_pred, k=K)
 
 
 def get_coefs(word, *arr):
@@ -88,10 +101,10 @@ def write_misclassified(X_test, y_pred, y_test):
     }
 
     for i, true_class in enumerate(y_test):
-        if true_class != y_pred[i]:
+        if true_class not in y_pred[i]:
             misclassified["sentence"].append(X_test[i])
             misclassified["true_label"].append(LABELS[true_class])
-            misclassified["predicted_label"].append(LABELS[y_pred[i]])
+            misclassified["predicted_label"].append(",".join([LABELS[pred] for pred in y_pred[i]]))
 
     df = pd.DataFrame(data=misclassified)
     df.to_csv(MISCLASSIFIED_FILE, index=None, header=True)
@@ -100,9 +113,12 @@ def write_misclassified(X_test, y_pred, y_test):
 if __name__ == '__main__':
     data = get_data()
 
-    # filter 99s
-    X = get_X_not_99(data["X"], data["y"])
-    y = get_y_not_99(data["y"])
+    X = data["X"]
+    y = data["y"]
+
+    # # filter 99s
+    # X = get_X_not_99(X, y)
+    # y = get_y_not_99(y)
 
     # One-hot-encodings
     y = get_one_hot(y)
@@ -135,24 +151,30 @@ if __name__ == '__main__':
     x = GlobalMaxPool1D()(x)
     x = Dense(100, activation="relu")(x)
     x = Dropout(0.25)(x)
-    x = Dense(20, activation="softmax")(x)
+    x = Dense(len(LABELS), activation="softmax")(x)
 
     model = Model(inputs=inp, outputs=x)
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
-    model.fit(X_train, Y_train, batch_size=256, epochs=9)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc', top_k_accuracy])
+    model.fit(X_train, Y_train, batch_size=256, epochs=EPOCHS)
 
     # Prediction
     scores = model.evaluate(X_test, Y_test, batch_size=100, verbose=1)
+
     y_pred = model.predict([X_test], batch_size=100, verbose=1)
-    y_pred_class = np.argmax(y_pred, axis=1)
+    y_pred_classes = np.apply_along_axis(get_top_k_indices, 1, y_pred, K)
     y_test_class = np.argmax(Y_test, axis=1)
 
-    write_misclassified(X_test_untokenized, y_pred_class, y_test_class)
+    write_misclassified(X_test_untokenized, y_pred_classes, y_test_class)
 
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
-    print('Confusion Matrix')
-    cm = confusion_matrix(y_pred_class, y_test_class)
-    print(cm)
-    plot_confusion_matrix(cm, LABELS)
-    plt = plot_confusion_matrix_blue(cm, LABELS)
-    plt.show()
+    print("top k accuracy - {}".format(scores[2] * 100))
+
+
+    # TODO: make confusion matrix configurable for different K values
+    if K == 1:
+        print('Confusion Matrix')
+        cm = confusion_matrix(y_pred_classes.flatten(), y_test_class)
+        print(cm)
+        plot_confusion_matrix(cm, LABELS)
+        plt = plot_confusion_matrix_blue(cm, LABELS)
+        plt.show()

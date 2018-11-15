@@ -117,6 +117,7 @@ if __name__ == '__main__':
     y_pred = model.predict([X_test], batch_size=100, verbose=1)
     y_pred_class = np.argmax(y_pred, axis=1)
     y_test_class = np.argmax(Y_test, axis=1)
+
     print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
     print('Confusion Matrix')
     cm = confusion_matrix(y_pred_class, y_test_class)
