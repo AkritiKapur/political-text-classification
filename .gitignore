@@ -4,3 +4,9 @@
 # Idea Files
 .idea/
 
+# data, Visualizations, and other files
+data/
+weights/
+word2vec/
+visualizations/
+
