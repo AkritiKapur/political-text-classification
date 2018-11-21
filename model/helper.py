@@ -1,8 +1,11 @@
+import sys
+
 import gensim
 import pandas as pd
 import numpy as np
 
 ################### WORD EMBEDDINGS ######################
+from exceptions import TestInputException
 
 
 def load_embeddings():
@@ -30,6 +33,16 @@ def is_99(row):
         return 0
 
 
+def import_data(data_files):
+    try:
+        if not data_files:
+            raise TestInputException("No import files specified")
+    except TestInputException as te:
+        sys.exit()
+    else:
+        return get_all_data(data_files)
+
+
 def get_data(f):
     """
         Load data from CSV
@@ -45,7 +58,7 @@ def get_data(f):
     }
 
 
-def get_test_data(files):
+def get_all_data(files):
     """
         Load data from CSVs
     :param f: {list} files for which data needs to be extracted into a dataframe

@@ -1,6 +1,9 @@
 """
     Classifies Political test
 """
+
+# List all your configurations under config
+
 from model.lstm_other import LSTMClassifier
 
 

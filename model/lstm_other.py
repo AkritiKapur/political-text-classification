@@ -4,7 +4,6 @@ took help from: https://www.kaggle.com/snlpnkj/bidirectional-lstm-keras,
 
 others - 16426
 """
-import sys
 
 import numpy as np
 import pandas as pd
@@ -18,47 +17,11 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-from exceptions import TestInputException
-from model import helper
-from model.helper import get_data
-# Set parameters
-from settings import VISUALIZATION_FOLDER, WORD2VEC_FOLER, DATA_FOLDER
+from config.lstm import K, LABELS, TRAINING_DATA_FILES, TEST_DATA_FILES, IMPORT_TEST_DATA, \
+    MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE
+from model.helper import import_data
 from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue
 from utils.process_data import get_top_k_indices
-
-# embed_size = 100  # how big is each word vector
-# max_features = 25000  # how many unique words to use (i.e num rows in embedding vector)
-# maxlen = 100  # max number of words in a comment to use
-
-LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-          '12', '13', '14', '15', '16', '17', '18', '19', '20',
-          '21', '99']
-
-# Top k hyperparameter setting
-K = 2
-
-EPOCHS = 1
-TRAIN_TEST_SPLIT = 0.2
-
-EMBEDDING_FILE = WORD2VEC_FOLER / "glove.6B.100d.txt"
-# EMBEDDING_FILE = "../word2vec/wiki-news-300d-1M.vec"
-
-MISCLASSIFIED_FILE = VISUALIZATION_FOLDER / "misclassified-with-99-{}-{}-test.csv".format(K, "bush-clinton")
-
-# Flag to see if test data should be imported or split
-IMPORT_TEST_DATA = True
-TRAINING_DATA_FILE = DATA_FOLDER / "training_repository.csv"
-TEST_DATA_FILES = [DATA_FOLDER / "benchmark_bushhw.csv", DATA_FOLDER / "benchmark_clinton.csv"]
-
-
-def get_test_data():
-    try:
-        if not TEST_DATA_FILES:
-            raise TestInputException("No test data input files specified")
-    except TestInputException as te:
-        sys.exit()
-    else:
-        return helper.get_test_data(TEST_DATA_FILES)
 
 
 def top_k_accuracy(y_true, y_pred):
@@ -125,7 +88,7 @@ def write_classified(X_test, y_pred, y_test):
 
 class Classifier:
     def __init__(self, percent_split):
-        data = get_data(TRAINING_DATA_FILE)
+        data = import_data(TRAINING_DATA_FILES)
         X = data["X"]
         y = get_one_hot(data["y"])
         self.X_train, self.y_train, self.X_test, self.y_test = self.split_data(X, y, percent_split)
@@ -141,7 +104,7 @@ class Classifier:
         else:
             # Test data set should be imported
             X_train, y_train = X, y
-            test_data = get_test_data()
+            test_data = import_data(TEST_DATA_FILES)
 
             X_test, y_test = test_data["X"], test_data["y"]
 
