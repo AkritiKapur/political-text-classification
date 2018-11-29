@@ -20,7 +20,7 @@ from sklearn.preprocessing import LabelEncoder
 from config.lstm import K, LABELS, TRAINING_DATA_FILES, TEST_DATA_FILES, IMPORT_TEST_DATA, \
     MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE
 from model.helper import import_data
-from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue
+from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue, plot_confusion_multiple
 from utils.process_data import get_top_k_indices
 
 
@@ -238,11 +238,4 @@ class LSTMClassifier(Classifier):
         print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
         print("top k accuracy - {}".format(scores[2] * 100))
 
-        # TODO: make confusion matrix configurable for different K values
-        if K == 1:
-            print('Confusion Matrix')
-            cm = confusion_matrix(y_pred_classes.flatten(), y_test_class)
-            print(cm)
-            plot_confusion_matrix(cm, LABELS)
-            plt = plot_confusion_matrix_blue(cm, LABELS)
-            plt.show()
+        plot_confusion_multiple(y_pred_classes, y_test_class, LABELS, K=K)

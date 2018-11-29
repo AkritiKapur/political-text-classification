@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.metrics import confusion_matrix
 
 
 def plot_confusion_matrix(cm, labels):
@@ -83,7 +84,6 @@ def plot_confusion_matrix_blue(cm,
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-
     thresh = cm.max() / 1.5 if normalize else cm.max() / 2
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         if normalize:
@@ -99,4 +99,24 @@ def plot_confusion_matrix_blue(cm,
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
-    return plt
+    plt.show()
+
+
+def plot_confusion_multiple(pred_classes,
+                            true_class,
+                            target_names,
+                            cmap=None,
+                            normalize=False,
+                            K=1):
+    """
+        Plot confusion matrix when classifier predicts top k labels at each position of k
+    :param pred_classes: for each point in the test data, sorted top k prediction
+    :return:
+    """
+    pred_classes = np.array(pred_classes)
+
+    for k in range(K):
+        pred_at_pos_k = pred_classes[:, k]
+        cm = confusion_matrix(pred_at_pos_k, true_class)
+
+        plot_confusion_matrix_blue(cm, target_names, title="Confusion matrix at position - {}/{}".format(k, K))
