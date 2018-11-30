@@ -117,6 +117,6 @@ def plot_confusion_multiple(pred_classes,
 
     for k in range(K):
         pred_at_pos_k = pred_classes[:, k]
-        cm = confusion_matrix(pred_at_pos_k, true_class)
+        cm = confusion_matrix(true_class, pred_at_pos_k)
 
-        plot_confusion_matrix_blue(cm, target_names, title="Confusion matrix at position - {}/{}".format(k, K))
+        plot_confusion_matrix_blue(cm, target_names, title="Confusion matrix at position - {}/{}".format(k+1, K))

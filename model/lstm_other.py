@@ -13,14 +13,13 @@ from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from keras.utils import np_utils
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from config.lstm import K, LABELS, TRAINING_DATA_FILES, TEST_DATA_FILES, IMPORT_TEST_DATA, \
     MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE
 from model.helper import import_data
-from utils.plot import plot_confusion_matrix, plot_confusion_matrix_blue, plot_confusion_multiple
+from utils.plot import plot_confusion_multiple
 from utils.process_data import get_top_k_indices
 
 
