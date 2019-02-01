@@ -8,7 +8,7 @@ others - 16426
 import numpy as np
 import pandas as pd
 from keras import Input, Model
-from keras.layers import Dense, Embedding, LSTM, Bidirectional, GlobalMaxPool1D, Dropout
+from keras.layers import Dense, Embedding, LSTM, Bidirectional, GlobalMaxPool1D, Dropout, Concatenate
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from config.lstm import K, LABELS, TRAINING_DATA_FILES, TEST_DATA_FILES, IMPORT_TEST_DATA, \
-    MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE
+    MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE, INCLUDE_TYPE_FEATURE
 from model.helper import import_data
 from utils.plot import plot_confusion_multiple
 from utils.process_data import get_top_k_indices
@@ -70,6 +70,7 @@ def write_classified(X_test, y_pred, y_test):
         "sentence": [],
         "true_label": [],
         "predicted_label": [],
+        "misclassified": []
     }
 
     for i, true_class in enumerate(y_test):
@@ -77,9 +78,10 @@ def write_classified(X_test, y_pred, y_test):
         classified["true_label"].append(LABELS[true_class])
         classified["predicted_label"].append(",".join([LABELS[pred] for pred in y_pred[i]]))
 
-        classified["misclassified"] = False
+        is_misclassified = False
         if true_class not in y_pred[i]:
-            classified["misclassified"] = True
+            is_misclassified = True
+        classified["misclassified"].append(is_misclassified)
 
     df = pd.DataFrame(data=classified)
     df.to_csv(MISCLASSIFIED_FILE, index=None, header=True)
@@ -88,17 +90,28 @@ def write_classified(X_test, y_pred, y_test):
 class Classifier:
     def __init__(self, percent_split):
         data = import_data(TRAINING_DATA_FILES)
-        X = data["X"]
-        y = get_one_hot(data["y"])
-        self.X_train, self.y_train, self.X_test, self.y_test = self.split_data(X, y, percent_split)
+        self.X_train, self.X_type_train, self.y_train, self.X_test, self.X_type_test, self.y_test = \
+            self.split_data(data, percent_split)
 
-    def split_data(self, X, y, percent):
+    def split_data(self, data, percent):
         """
             Splits data into train and test data
         :param percent: test percent out of the whole data.
         :return {dict} X train, X test, y train and y test
         """
+        X_type_train = None
+        X_type_test = None
+        X = data["X"]
+        y = get_one_hot(data["y"])
+
         if not IMPORT_TEST_DATA:
+
+            if INCLUDE_TYPE_FEATURE:
+                X_type = data["X_type"]
+                X_type = get_one_hot(X_type)
+                X_train, X_test, X_type_train, X_type_test, y_train, y_test = train_test_split(X, X_type, y,
+                                                                                               test_size=percent,
+                                                                                               random_state=1435)
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=percent, random_state=1435)
         else:
             # Test data set should be imported
@@ -112,7 +125,7 @@ class Classifier:
             X_test = X_test[perm]
             y_test = get_one_hot(y_test[perm])
 
-        return X_train, y_train, X_test, y_test
+        return X_train, X_type_train, y_train, X_test, X_type_test, y_test,
 
 
 class LSTMClassifier(Classifier):
@@ -187,13 +200,18 @@ class LSTMClassifier(Classifier):
         return embedding_matrix
 
     def train(self):
+        # Get embedding feature
         embedding_matrix = self.get_embedding_matrix()
 
         # get model
-        model = self.model(embedding_matrix)
-
-        # Run model for some epochs
-        model.fit(self.t_X_train, self.y_train, batch_size=256, epochs=self.epochs)
+        if INCLUDE_TYPE_FEATURE:
+            model = self.model_with_type_feature(embedding_matrix)
+            # Run model for some epochs
+            model.fit([self.t_X_train, self.X_type_train], self.y_train, batch_size=256, epochs=self.epochs)
+        else:
+            model = self.model(embedding_matrix)
+            # Run model for some epochs
+            model.fit(self.t_X_train, self.y_train, batch_size=256, epochs=self.epochs)
 
         return model
 
@@ -216,15 +234,37 @@ class LSTMClassifier(Classifier):
 
         return model
 
+    def model_with_type_feature(self, embedding_matrix):
+
+        words = embedding_matrix.shape[0]
+        inp = Input(shape=(self.maxlen,))
+        x = Embedding(words, self.embed_size, weights=[embedding_matrix], trainable=True)(inp)
+        lstm = Bidirectional(LSTM(100, dropout=0.25, recurrent_dropout=0.1))(x)
+        inp_type = Input(shape=(16,))
+        # pool = GlobalMaxPool1D()(lstm)
+        conc = Concatenate()([lstm, inp_type])
+        dense = Dense(100, activation="relu")(conc)
+        drop = Dropout(0.25)(dense)
+        acti = Dense(len(LABELS), activation="softmax")(drop)
+
+        model = Model(inputs=[inp, inp_type], outputs=acti)
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc', top_k_accuracy])
+
+        return model
+
     def predict(self, display=True):
         # TODO: would change after saving weights
         # train model
         model = self.train()
 
         # Predict scores
-        scores = model.evaluate(self.t_X_test, self.y_test, batch_size=100, verbose=1)
+        if INCLUDE_TYPE_FEATURE:
+            scores = model.evaluate([self.t_X_test, self.X_type_test], self.y_test, batch_size=100, verbose=1)
+            y_pred = model.predict([self.t_X_test, self.X_type_test], batch_size=100, verbose=1)
+        else:
+            scores = model.evaluate(self.t_X_test, self.y_test, batch_size=100, verbose=1)
+            y_pred = model.predict([self.t_X_test], batch_size=100, verbose=1)
 
-        y_pred = model.predict([self.t_X_test], batch_size=100, verbose=1)
         y_pred_classes = np.apply_along_axis(get_top_k_indices, 1, y_pred, K)
         y_test_class = np.argmax(self.y_test, axis=1)
 
