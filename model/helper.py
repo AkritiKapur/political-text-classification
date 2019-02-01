@@ -5,7 +5,8 @@ import pandas as pd
 import numpy as np
 
 ################### WORD EMBEDDINGS ######################
-from exceptions import TestInputException
+from config.lstm import INCLUDE_TYPE_FEATURE
+from exceptions import InputException
 
 
 def load_embeddings():
@@ -18,6 +19,7 @@ def load_embeddings():
     return model
 
 ################################## DATA #################################
+
 
 def is_99(row):
     """
@@ -36,14 +38,16 @@ def is_99(row):
 def import_data(data_files):
     try:
         if not data_files:
-            raise TestInputException("No import files specified")
-    except TestInputException as te:
+            raise InputException("No import files specified")
+    except InputException as te:
         sys.exit()
     else:
+        if INCLUDE_TYPE_FEATURE:
+            return get_all_data_with_type(data_files)
         return get_all_data(data_files)
 
 
-def get_data(f):
+def get_data(f, get_type_feature=False):
     """
         Load data from CSV
     :return: Training data X and labels y
@@ -51,11 +55,17 @@ def get_data(f):
     df = pd.read_csv(f, encoding="ISO-8859-1")
     X = df['Sentences'].values
     y = df['pap_fin'].values
+    X_type = df['Statement.Type'].values
 
-    return {
+    data = {
         "X": np.array(X),
         "y": np.array(y)
     }
+
+    if get_type_feature:
+        data["X_type"] = np.array(X_type)
+
+    return data
 
 
 def get_all_data(files):
@@ -73,6 +83,22 @@ def get_all_data(files):
         data = get_data(f)
         fin_data["X"] = np.concatenate((fin_data["X"], data["X"]), axis=None)
         fin_data["y"] = np.concatenate((fin_data["y"], data["y"]), axis=None)
+
+    return fin_data
+
+
+def get_all_data_with_type(files):
+    fin_data = {
+        "X": np.array([]),
+        "y": np.array([]),
+        "X_type": np.array([])
+    }
+
+    for f in files:
+        data = get_data(f, True)
+        fin_data["X"] = np.concatenate((fin_data["X"], data["X"]), axis=None)
+        fin_data["y"] = np.concatenate((fin_data["y"], data["y"]), axis=None)
+        fin_data["X_type"] = np.concatenate((fin_data["X_type"], data["X_type"]), axis=None)
 
     return fin_data
 

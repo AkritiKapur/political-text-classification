@@ -3,6 +3,6 @@
 """
 
 
-class TestInputException(Exception):
+class InputException(Exception):
     pass
 
