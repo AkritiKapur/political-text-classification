@@ -13,6 +13,23 @@ PREDICT_MODE = "predict"
 MODEL_SAVE_DIR = "../weights/"
 
 
+class Classifier_99:
+    def __init__(self):
+        self.classifier = LogisticRegression()
+
+    def get_features(self):
+        pass
+
+    def train(self):
+        pass
+
+    def predict(self):
+        pass
+
+    def get_accuracy_stats(self):
+        pass
+
+
 def classify_is_99(X, y, embeddings, mode):
     """
     Classifies speech as 99 or not 99
