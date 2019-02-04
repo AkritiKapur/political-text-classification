@@ -6,3 +6,6 @@
 class InputException(Exception):
     pass
 
+
+class TrainLabelException(Exception):
+    pass
