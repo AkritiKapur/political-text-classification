@@ -41,7 +41,8 @@ class DataHandler:
         X_type_train = None
         X_type_test = None
         X = data["X"]
-        y = get_one_hot(data["y"])
+        # y = get_one_hot(data["y"])
+        y = data["y"]
 
         if not IMPORT_TEST_DATA:
 
