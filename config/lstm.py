@@ -19,7 +19,8 @@ MISCLASSIFIED_FILE = VISUALIZATION_FOLDER / "all-classified-with-99-type-{}-{}-t
 
 # Flag to see if test data should be imported or split
 IMPORT_TEST_DATA = False
-INCLUDE_TYPE_FEATURE = True
-TRAINING_DATA_FILES = [DATA_FOLDER / "sanitized_reagan_81.csv"]
+INCLUDE_TYPE_FEATURE = False
+# TRAINING_DATA_FILES = [DATA_FOLDER / "sanitized_reagan_81.csv"]
 # TRAINING_DATA_FILES = [DATA_FOLDER / "training_repository.csv", DATA_FOLDER / "benchmark_clinton.csv"]
+TRAINING_DATA_FILES = [DATA_FOLDER / "training_repository.csv"]
 TEST_DATA_FILES = [DATA_FOLDER / "benchmark_bushhw.csv"]
