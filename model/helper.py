@@ -55,7 +55,6 @@ def get_data(f, get_type_feature=False):
     df = pd.read_csv(f, encoding="ISO-8859-1")
     X = df['Sentences'].values
     y = df['pap_fin'].values
-    X_type = df['Statement.Type'].values
 
     data = {
         "X": np.array(X),
@@ -63,6 +62,7 @@ def get_data(f, get_type_feature=False):
     }
 
     if get_type_feature:
+        X_type = df['Statement.Type'].values
         data["X_type"] = np.array(X_type)
 
     return data
