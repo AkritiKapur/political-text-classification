@@ -5,7 +5,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 
 from config.lstm import TRAIN_TEST_SPLIT
 from model.data_handler import DataHandler
-from model.helper import load_embeddings
+from model.helper import load_embeddings, get_y_is_99
 from utils.transformer import LengthVectorier, WordEmbeddingVectorizer
 
 TRAIN_MODE = "train"
@@ -14,8 +14,20 @@ PREDICT_MODE = "predict"
 MODEL_SAVE_DIR = "../weights/"
 
 
-class Classify99:
-    pass
+class Classify99(DataHandler):
+    def __init__(self):
+        # intialize train test set
+        DataHandler.__init__(self, TRAIN_TEST_SPLIT)
+        self.y_train = self.restructure_labels(self.y_train)
+        self.y_test = self.restructure_labels(self.y_test)
+
+    def restructure_labels(self, y):
+        """
+            Restructure labels into 99s and others
+        :return: restructures lablels where 1 indicates 99 and 0 indicates other labels
+        """
+
+        return get_y_is_99(y)
 
 
 class BaselineClassifier(DataHandler):

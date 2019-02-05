@@ -41,6 +41,7 @@ class DataHandler:
         X_type_train = None
         X_type_test = None
         X = data["X"]
+        # TODO: fix one hot conversion
         # y = get_one_hot(data["y"])
         y = data["y"]
 
