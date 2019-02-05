@@ -14,6 +14,10 @@ PREDICT_MODE = "predict"
 MODEL_SAVE_DIR = "../weights/"
 
 
+class Classify99:
+    pass
+
+
 class BaselineClassifier(DataHandler):
 
     def __init__(self):
