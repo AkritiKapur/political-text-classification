@@ -42,8 +42,8 @@ class DataHandler:
         X_type_test = None
         X = data["X"]
         # TODO: fix one hot conversion
-        # y = get_one_hot(data["y"])
-        y = data["y"]
+        y = get_one_hot(data["y"])
+        # y = data["y"]
 
         if not IMPORT_TEST_DATA:
 

@@ -13,7 +13,8 @@ from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 
-from config.lstm import K, LABELS, MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE, INCLUDE_TYPE_FEATURE
+from config.lstm import K, LABELS, MISCLASSIFIED_FILE, TRAIN_TEST_SPLIT, EPOCHS, EMBEDDING_FILE, INCLUDE_TYPE_FEATURE, \
+    EMBEDDING_SIZE
 from model.data_handler import DataHandler
 from utils.plot import plot_confusion_multiple
 from utils.process_data import get_top_k_indices
@@ -70,7 +71,7 @@ class LSTMClassifier(DataHandler):
     def __init__(self):
         DataHandler.__init__(self, TRAIN_TEST_SPLIT)
         self.epochs = EPOCHS
-        self.embed_size = 100  # how big is each word vector
+        self.embed_size = EMBEDDING_SIZE  # how big is each word vector
         self.embeddings = get_embeddings()
         self.max_features = 25000  # how many unique words to use (i.e num rows in embedding vector)
         self.maxlen = 100  # max number of words taken in a sentence
@@ -214,4 +215,4 @@ class LSTMClassifier(DataHandler):
         print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
         print("top k accuracy - {}".format(scores[2] * 100))
 
-        plot_confusion_multiple(y_pred_classes, y_test_class, LABELS, K=K)
+        # plot_confusion_multiple(y_pred_classes, y_test_class, LABELS, K=K)
