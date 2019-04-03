@@ -117,6 +117,24 @@ def get_y_not_99(y):
     return y[y != 99]
 
 
+def get_one_hot(y):
+    """
+        Converts labels into one hot vector
+    :param y: {List} labels
+    :return: {2D array} one hot labels
+    """
+    # Help: https://machinelearningmastery.com/multi-class-classification-tutorial-keras-deep-learning-library/
+
+    # encode class values as integers
+    encoder = LabelEncoder()
+    encoder.fit(y)
+    encoded_Y = encoder.transform(y)
+    # convert integers to dummy variables (i.e. one hot encoded)
+    dummy_y = np_utils.to_categorical(encoded_Y)
+
+    return dummy_y
+
+
 ################################ SAVE WEIGHTS ###################################
 
 

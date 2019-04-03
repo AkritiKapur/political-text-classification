@@ -215,4 +215,4 @@ class LSTMClassifier(DataHandler):
         print("%s: %.2f%%" % (model.metrics_names[1], scores[1] * 100))
         print("top k accuracy - {}".format(scores[2] * 100))
 
-        # plot_confusion_multiple(y_pred_classes, y_test_class, LABELS, K=K)
+        plot_confusion_multiple(y_pred_classes, y_test_class, LABELS, K=K)

@@ -5,25 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from config.lstm import TRAINING_DATA_FILES, TEST_DATA_FILES, IMPORT_TEST_DATA, \
     INCLUDE_TYPE_FEATURE
-from model.helper import import_data
-
-
-def get_one_hot(y):
-    """
-        Converts labels into one hot vector
-    :param y: {List} labels
-    :return: {2D array} one hot labels
-    """
-    # Help: https://machinelearningmastery.com/multi-class-classification-tutorial-keras-deep-learning-library/
-
-    # encode class values as integers
-    encoder = LabelEncoder()
-    encoder.fit(y)
-    encoded_Y = encoder.transform(y)
-    # convert integers to dummy variables (i.e. one hot encoded)
-    dummy_y = np_utils.to_categorical(encoded_Y)
-
-    return dummy_y
+from model.helper import import_data, get_X_not_99, get_y_not_99, get_one_hot
 
 
 class DataHandler:
@@ -40,6 +22,10 @@ class DataHandler:
         """
         X_type_train = None
         X_type_test = None
+        # filter 99s
+        # X = get_X_not_99(data["X"], data["y"])
+        # y = get_y_not_99(data["y"])
+        # y = get_one_hot(y)
         X = data["X"]
         # TODO: fix one hot conversion
         y = get_one_hot(data["y"])

@@ -69,7 +69,7 @@ def plot_confusion_matrix_blue(cm,
     misclass = 1 - accuracy
 
     if cmap is None:
-        cmap = plt.get_cmap('Blues')
+        cmap = plt.get_cmap('Purples')
 
     plt.figure(figsize=(8, 6))
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
