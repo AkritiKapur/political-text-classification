@@ -5,6 +5,9 @@ import pandas as pd
 import numpy as np
 
 ################### WORD EMBEDDINGS ######################
+from keras.utils import np_utils
+from sklearn.preprocessing import LabelEncoder
+
 from config.lstm import INCLUDE_TYPE_FEATURE
 from exceptions import InputException
 

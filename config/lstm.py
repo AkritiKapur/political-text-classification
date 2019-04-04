@@ -9,7 +9,7 @@ LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
 # Top k hyperparameter setting
 K = 2
 
-EPOCHS = 9
+EPOCHS = 1
 TRAIN_TEST_SPLIT = 0.2
 EMBEDDING_SIZE = 200
 
