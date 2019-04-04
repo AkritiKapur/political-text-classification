@@ -74,23 +74,17 @@ class MultiTaskClassifier:
         embedding = Embedding(X_train, X_test, self.max_features, self.maxlen)
         self.embedding_matrix = embedding.generate_embedding_matrix()
 
+    def train(self):
+        pass
 
+    def test(self):
+        pass
 
-def get_loss():
-    pass
+    def get_model(self):
+        pass
 
-
-def train(X_train, X_test, y_topic, y_pres):
-    # Get embedding feature
-    embedding_matrix = get_embedding_matrix()
-
-
-def test():
-    pass
-
-
-def get_model():
-    pass
+    def get_loss(self):
+        pass
 
 
 if __name__ == '__main__':
