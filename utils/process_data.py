@@ -9,3 +9,4 @@ def get_top_k_indices(arr, k):
     """
 
     return arr.argsort()[-k:][::-1]
+
