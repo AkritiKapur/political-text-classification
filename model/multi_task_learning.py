@@ -22,6 +22,8 @@ TRAINING_DATA_FILES = {
     "Bush": DATA_FOLDER / "benchmark_bushhw.csv"
 }
 
+DATA_PER_FILE_LIMIT = 6000
+
 
 def top_k_accuracy(y_true, y_pred):
     return top_k_categorical_accuracy(y_true, y_pred, k=K)
@@ -31,6 +33,11 @@ def _get_data(f_key):
     df = pd.read_csv(TRAINING_DATA_FILES[f_key], encoding="ISO-8859-1")
     X = df['Sentences'].values
     y = df['pap_fin'].values
+
+    # Randomly permute indices
+    perm = np.random.permutation(len(X))
+    X = X[perm][:DATA_PER_FILE_LIMIT]
+    y = y[perm][:DATA_PER_FILE_LIMIT]
 
     data = {
         "X": np.array(X),
@@ -97,8 +104,8 @@ class MultiTaskClassifier:
         scores = trained_model.evaluate(self.X_test, [self.y_name_test, self.y_topic_test], batch_size=100, verbose=1)
         y_pred = trained_model.predict([self.X_test], batch_size=100, verbose=1)
 
-        print("%s: %.2f%%" % (trained_model.metrics_names[1], scores[1] * 100))
-        print("%s: %.2f%%" % (trained_model.metrics_names[2], scores[2] * 100))
+        print("%s: %.2f%%" % (trained_model.metrics_names[3], scores[3] * 100))
+        print("%s: %.2f%%" % (trained_model.metrics_names[4], scores[4] * 100))
         pass
 
     def get_model(self):
@@ -120,6 +127,7 @@ class MultiTaskClassifier:
 
     def get_loss(self):
         pass
+
 
 
 if __name__ == '__main__':
