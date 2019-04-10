@@ -7,7 +7,7 @@ LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
           '21', '99']
 
 # Top k hyperparameter setting
-K = 2
+K = 1
 
 EPOCHS = 1
 TRAIN_TEST_SPLIT = 0.2

@@ -15,6 +15,8 @@ from config.lstm import EPOCHS, TRAIN_TEST_SPLIT, EMBEDDING_SIZE, LABELS, K
 from model.helper import get_one_hot
 from settings import WORD2VEC_FOLER, VISUALIZATION_FOLDER, DATA_FOLDER
 from utils.embedding import Embedding
+from utils.plot import plot_confusion_multiple
+from utils.process_data import get_top_k_indices
 
 TRAINING_DATA_FILES = {
     "Reagan": DATA_FOLDER / "training_repository.csv",
@@ -99,14 +101,24 @@ class MultiTaskClassifier:
 
         return model
 
-    def predict(self):
+    def predict(self, display=True):
         trained_model = self.train()
         scores = trained_model.evaluate(self.X_test, [self.y_name_test, self.y_topic_test], batch_size=100, verbose=1)
         y_pred = trained_model.predict([self.X_test], batch_size=100, verbose=1)
 
         print("%s: %.2f%%" % (trained_model.metrics_names[3], scores[3] * 100))
         print("%s: %.2f%%" % (trained_model.metrics_names[4], scores[4] * 100))
-        pass
+
+        if display:
+            # display president confusion matrix
+            y_pred_names = np.apply_along_axis(get_top_k_indices, 1, y_pred[0])
+            y_test_names = np.argmax(self.y_name_test, axis=1)
+            self.visualize(y_test_names, y_pred_names, list(TRAINING_DATA_FILES.keys()))
+
+            # display topic confusion matrix
+            y_pred_topics = np.apply_along_axis(get_top_k_indices, 1, y_pred[1])
+            y_test_topics = np.argmax(self.y_topic_test, axis=1)
+            self.visualize(y_test_topics, y_pred_topics, LABELS)
 
     def get_model(self):
         words = self.embedding_matrix.shape[0]
@@ -128,6 +140,8 @@ class MultiTaskClassifier:
     def get_loss(self):
         pass
 
+    def visualize(self, y_test_class, y_pred_classes, labels):
+        plot_confusion_multiple(y_pred_classes, y_test_class, labels)
 
 
 if __name__ == '__main__':

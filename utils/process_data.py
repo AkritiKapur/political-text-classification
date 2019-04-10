@@ -1,5 +1,5 @@
 
-def get_top_k_indices(arr, k):
+def get_top_k_indices(arr, k=1):
     """
         numpy function
         Returns top k elements in the array
